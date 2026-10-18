@@ -1,0 +1,33 @@
+{
+  "_comment": "Example configuration for QuickPrompt AI. Copy to %APPDATA%\\QuickPromptAI\\settings.json only if you want to pre-seed settings. NEVER put API keys here - keys are stored in Windows Credential Manager.",
+  "active_provider": "openai",
+  "models": {
+    "openai": "gpt-4o-mini",
+    "anthropic": "claude-sonnet-4-20250514",
+    "gemini": "gemini-2.0-flash",
+    "groq": "llama-3.3-70b-versatile",
+    "openai_compat": "your-model-id"
+  },
+  "base_urls": {
+    "openai": "https://api.openai.com/v1",
+    "anthropic": "https://api.anthropic.com",
+    "gemini": "https://generativelanguage.googleapis.com",
+    "groq": "https://api.groq.com/openai/v1",
+    "openai_compat": "https://api.example.com/v1"
+  },
+  "shortcut": "Ctrl+Shift+E",
+  "dictation_shortcut": "Ctrl+Shift+S",
+  "whisper_model": "",
+  "timeout": 30.0,
+  "max_tokens": 2048,
+  "temperature_enabled": false,
+  "temperature": 0.7,
+  "model_strategy": "universal",
+  "max_input_chars": 24000,
+  "history_enabled": true,
+  "history_max": 100,
+  "price_overrides": {
+    "_example": { "input": 0.15, "output": 0.60 }
+  },
+  "version": 1
+}

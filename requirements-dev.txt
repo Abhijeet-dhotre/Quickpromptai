@@ -1,0 +1,5 @@
+# QuickPrompt AI — development / build dependencies
+-r requirements.txt
+pytest>=8.0
+pyinstaller>=6.0
+pillow>=10.0
