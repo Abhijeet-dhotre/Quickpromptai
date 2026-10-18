@@ -397,4 +397,7 @@ quickprompt/
 └── config.example.json         # example configuration (placeholders only)
 ```
 
-License: use and modify freely for personal/commercial use; no warranty.
+## License
+
+[MIT](LICENSE) © 2026 Abhijeet Dhotre — use, modify and redistribute freely,
+including commercially. No warranty is provided.
