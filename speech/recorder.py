@@ -19,7 +19,9 @@ Design notes
 """
 from __future__ import annotations
 
+import array
 import io
+import math
 import wave
 
 from core.errors import MicrophoneError
@@ -29,7 +31,15 @@ from core.errors import MicrophoneError
 SAMPLE_RATE = 16_000
 _CHANNELS = 1          # mono — stereo doubles the upload for no benefit
 _SAMPLE_WIDTH = 2     # 16-bit PCM
-_BLOCK_SECONDS = 0.1  # capture granularity (~10 ms of audio per callback)
+_BLOCK_SECONDS = 0.02  # capture granularity (~20 ms per callback; ~50/s, which
+                       # is also the update rate the waveform overlay needs)
+
+#: Asymmetric smoothing for the loudness meter (see ``_update_level``):
+#: spikes punch through almost instantly, the tail decays more slowly so the
+#: bars resemble real speech instead of blinking.
+_LEVEL_ATTACK = 0.70   # rise towards the target (fast)
+_LEVEL_RELEASE = 0.15  # fall towards the target (slower)
+_NOISE_GATE = 0.0025   # RMS below this counts as silence (room tone)
 
 
 def encode_wav(frames: list[bytes], sample_rate: int = SAMPLE_RATE) -> bytes:
@@ -55,12 +65,19 @@ class AudioRecorder:
 
     ``stream_factory`` is an injection seam for tests; production code uses
     the default PortAudio-backed factory.
+
+    ``level_callback`` (optional, settable any time) receives the smoothed
+    mic loudness as a float 0.0–1.0 roughly 50 times per second, straight from
+    the PortAudio callback thread. The dictation waveform overlay connects a
+    Qt signal to it so the value is marshalled into the GUI thread.
     """
 
-    def __init__(self, *, stream_factory=None):
+    def __init__(self, *, stream_factory=None, level_callback=None):
         self._stream_factory = stream_factory
+        self.level_callback = level_callback
         self._stream = None
         self._frames: list[bytes] = []
+        self._level = 0.0  # last smoothed loudness (0..1)
 
     # ------------------------------------------------------------------
     @property
@@ -77,11 +94,15 @@ class AudioRecorder:
         if self.active:
             return
         self._frames = []
+        self._level = 0.0
 
         def _on_audio(indata, _frames, _time_info, _status) -> None:
             # Runs on PortAudio's thread; ``bytes(indata)`` copies the block so
             # it stays valid after PortAudio reuses its buffer.
             self._frames.append(bytes(indata))
+            # Loudness metering rides the same callback: one real RMS value
+            # per ~20 ms block, no timers and no extra polling anywhere.
+            self._update_level(indata)
 
         try:
             stream = self._open_stream(_on_audio)
@@ -119,6 +140,45 @@ class AudioRecorder:
         if not frames:
             return None
         return encode_wav(frames)
+
+    # ------------------------------------------------------------------
+    def _update_level(self, indata) -> None:
+        """Meter one audio block and push the smoothed RMS to ``level_callback``.
+
+        Runs on the PortAudio thread. The value is normalised loudness 0..1
+        with a perceptual squash and a silence gate, smoothed asymmetrically
+        (rises fast, falls slower) so the dictation overlay's bars read like a
+        real waveform. Metering must never break recording: any failure is
+        swallowed and the callback is optional.
+        """
+        try:
+            raw = indata.tobytes() if hasattr(indata, "tobytes") else bytes(indata)
+            samples = array.array("h")
+            samples.frombytes(raw)
+            if samples:
+                rms = math.sqrt(
+                    sum(abs(s) * abs(s) for s in samples) / len(samples)
+                ) / 32768.0
+            else:
+                rms = 0.0
+            target = (
+                0.0 if rms < _NOISE_GATE
+                else min(1.0, (rms * 6.0) ** 0.6)
+            )
+        except Exception:  # noqa: BLE001 - metering may never kill the mic
+            target = self._level
+        smoothing = _LEVEL_ATTACK if target > self._level else _LEVEL_RELEASE
+        self._level = self._level + (target - self._level) * smoothing
+        if self.level_callback is not None:
+            try:
+                self.level_callback(self._level)
+            except Exception:  # noqa: BLE001 - a broken meter never breaks audio
+                pass
+
+    @property
+    def level(self) -> float:
+        """Latest smoothed loudness (0.0–1.0) of the running recording."""
+        return self._level
 
     # ------------------------------------------------------------------
     def _open_stream(self, callback):

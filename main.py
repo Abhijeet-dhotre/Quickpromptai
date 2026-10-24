@@ -91,6 +91,11 @@ def build_app(smoke: bool = False):
     window = MainWindow(controller)
     window.allow_hide_on_close = True
     popup = EnhancePopup()
+    # Wispr Flow-style dictation pill. Pure display: it is shown/hidden only
+    # from the dictation handlers below and its window flags guarantee it can
+    # never take focus (so the dictation paste-target check stays honest).
+    from ui.dictation_overlay import DictationOverlay, short_error_label
+    overlay = DictationOverlay()
     tray = TrayController(load_icon())
 
     from core.models import EnhanceMode
@@ -176,6 +181,7 @@ def build_app(smoke: bool = False):
     # tray tooltip and the main window's status bar, neither of which steals
     # focus.
     def on_dictation_started() -> None:
+        overlay.set_listening()   # pill appears without stealing focus
         window.clear_error()   # a fresh attempt replaces any stale red line
         window.show_dictation_indicator(True)
         tray.set_status("🎤 Listening…")
@@ -183,6 +189,7 @@ def build_app(smoke: bool = False):
             popup.show_notice("🎤 Listening…")
 
     def on_dictation_processing() -> None:
+        overlay.set_processing()   # dots while Whisper runs
         window.show_dictation_indicator(False, processing=True)
         tray.set_status("Transcribing…")
         if popup.isVisible():
@@ -192,7 +199,10 @@ def build_app(smoke: bool = False):
         window.clear_error()
         window.show_dictation_indicator(False)
         tray.set_status(APP_NAME)
-        if not text.strip():
+        if text.strip():
+            overlay.set_done()
+        else:
+            overlay.set_error("No speech detected")
             window.statusBar().showMessage(
                 "Dictation finished, but no speech was detected.", 5000,
             )
@@ -203,12 +213,14 @@ def build_app(smoke: bool = False):
         window.clear_error()
         window.show_dictation_indicator(False)
         tray.set_status(APP_NAME)
+        overlay.set_error(short_error_label(error))
         window.show_error(friendly_error(error) + " The text is below instead.")
         window.insert_transcript(text)
 
     def on_dictation_failed(error: Exception) -> None:
         window.show_dictation_indicator(False)
         tray.set_status(APP_NAME)
+        overlay.set_error(short_error_label(error))
         message = friendly_error(error, [controller.settings.__dict__.get("api_key")])
         # Surface the failure wherever the user is looking: the popup if it is
         # open, and BOTH the red error label and the status bar of the main
@@ -222,6 +234,18 @@ def build_app(smoke: bool = False):
     controller.dictation_text_ready.connect(on_dictation_text)
     controller.dictation_not_pasted.connect(on_dictation_not_pasted)
     controller.dictation_failed.connect(on_dictation_failed)
+
+    # Feed the pill's waveform from the recorder's own real loudness values
+    # (one per ~20 ms audio block, smoothed in the recorder). The overlay's
+    # level_changed signal is the thread bridge: the recorder calls
+    # ``emit`` from the PortAudio audio thread and Qt delivers it to the GUI
+    # thread. The overlay never starts or extends the mic by itself.
+    try:
+        recorder = controller._dictation.recorder   # production default
+    except AttributeError:
+        recorder = None
+    if recorder is not None:
+        recorder.level_callback = overlay.level_changed.emit
 
     controller.popup_stage.connect(lambda stage: popup.set_loading(stage or None))
     controller.popup_capture_ready.connect(on_capture_ready)
@@ -282,6 +306,8 @@ def build_app(smoke: bool = False):
         )
 
     app.aboutToQuit.connect(controller.shutdown)
+    # Never leave the pill (or its timers) hanging around past shutdown.
+    app.aboutToQuit.connect(overlay.force_hide)
     return app, controller, window, popup, tray
 
 

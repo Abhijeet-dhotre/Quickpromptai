@@ -33,18 +33,36 @@ Each item states the steps, the expected result, and where it applies.
 
 | # | Steps | Expected |
 |---|---|---|
-| S1 | Press Ctrl+Shift+S, speak a sentence, press again | Recording starts instantly; transcript is inserted at the cursor in the Enhance tab typing area. |
+| S1 | Press Ctrl+Shift+Q, speak a sentence, press again | Recording starts instantly; transcript is inserted at the cursor in the Enhance tab typing area. |
 | S2 | Dictate with the popup open | Transcript lands in the popup's input box at the caret. |
 | S3 | Dictate with existing text, caret mid-sentence | Text inserted exactly at the caret; surrounding text intact; a space separates words. |
 | S4 | Press shortcut, stop immediately without speaking | Friendly "no audio captured" message; nothing inserted. |
-| S5 | Deny microphone access in Windows privacy settings | Clear "Windows blocked microphone access" message with the Settings path. |
-| S6 | Unplug/disable the mic, then dictate | "No microphone found" message; recording state resets. |
+| S5 | Deny microphone access in Windows privacy settings | Clear "Windows blocked microphone access" message with the Settings path; the dictation pill flashes its red error state and hides itself after ~2 s. |
+| S6 | Unplug/disable the mic, then dictate | "No microphone found" message; recording state resets; pill shows the red error state briefly, then hides. |
 | S7 | Disconnect network, then dictate | Friendly network error; app stays responsive; next dictation works. |
 | S8 | Use a provider without a Whisper endpoint (e.g. Anthropic) | Clear message that the provider does not support speech-to-text. |
 | S9 | Shortcut tab → Dictation row → record Ctrl+Alt+D → Apply | New dictation shortcut works; persisted after restart; enhance shortcut unaffected. |
 | S10 | Set the dictation shortcut equal to the enhance shortcut | Rejected with a clear message; old dictation shortcut stays active. |
 | S11 | Speak for 2+ minutes | Recording/transcription completes or stops gracefully; no crash, mic released. |
-| S12 | Quit the app while recording | Process exits; microphone is released (check Sound settings). |
+| S12 | Quit the app while recording | Process exits; microphone is released (check Sound settings); the pill is gone. |
+
+### B3. Dictation overlay pill (Wispr Flow-style)
+
+| # | Steps | Expected |
+|---|---|---|
+| O1 | Idle (app in tray, nothing running) | No pill visible; Task Manager shows no idle CPU from QuickPrompt AI. |
+| O2 | Notepad focused → Ctrl+Shift+Q first press | Icon-only dark frosted-glass pill appears bottom-centre of the monitor under the mouse, just above the taskbar, on top of Notepad, with a centred soft white waveform. **No text on the pill. Notepad keeps focus** (keep typing while it shows). |
+| O3 | Speak louder / quieter | Bars grow taller / shrink (6–26 px range); rim glow brightens with volume. No bars wiggle from a timer when the mic is closed. |
+| O4 | Caret near the bottom-centre of the screen, then dictate | Pill shifts above (or below) the caret instead of covering the text cursor. |
+| O5 | Ctrl+Shift+Q second press | Pill shrinks slightly, border tinted blue, 3 centred pulsing dots (no text) while the provider runs. |
+| O6 | Transcript typed successfully | Green border + centred green checkmark only; fades away after ~1.2 s; nothing stays on screen afterwards. |
+| O7 | Start recording in Notepad, switch to another window mid-recording, let it stop | Typing is still **refused** exactly as before ("You switched to another window…"); pill shows a centred red "!" badge only (no text — the full reason appears in the app window), shakes, hides after ~2 s; the transcript waits in the Enhance tab. Nothing is ever typed into the wrong app. |
+| O8 | Network cable pulled → dictate | Red "!" badge pill (icon only); hides itself; the full error appears in the app window; app recovers. |
+| O9 | Click on the pill while recording | Nothing happens, focus stays in Notepad (the pill is click-dead and unactivated). |
+| O10 | Ctrl+Shift+E (enhance popup) normally | Prompt-enhance popup behaves exactly as before — the dictation pill must not appear for enhancement. |
+| O11 | Hide/deactivate a monitor while dictating, or run on two monitors | Pill stays on the monitor where the mouse is; never off-screen; no crash. |
+| O12 | Packaged exe: `dist\QuickPromptAI.exe --smoke-test` then dictate | `SMOKE OK`; pill behaves as O2–O6. |
+
 
 ## C. Enhancement
 
