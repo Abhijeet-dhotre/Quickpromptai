@@ -736,7 +736,7 @@ class MainWindow(QMainWindow):
         dictation_apply_button.setProperty("accent", True)
         dictation_apply_button.clicked.connect(self._apply_dictation_shortcut)
         dactions.addWidget(dictation_apply_button)
-        dictation_default_button = QPushButton("Reset to Default (Ctrl+Shift+S)")
+        dictation_default_button = QPushButton("Reset to Default (Ctrl+Shift+Q)")
         dictation_default_button.clicked.connect(
             lambda: self.dictation_shortcut_edit.setText(DEFAULT_DICTATION_SHORTCUT)
         )

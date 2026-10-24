@@ -798,7 +798,7 @@ def test_dictation_shortcut_must_differ_from_enhance(dictation_controller):
 # ======================================================================
 def test_settings_defaults_for_dictation():
     s = AppSettings()
-    assert s.dictation_shortcut == DEFAULT_DICTATION_SHORTCUT == "Ctrl+Shift+S"
+    assert s.dictation_shortcut == DEFAULT_DICTATION_SHORTCUT == "Ctrl+Shift+Q"
     assert s.whisper_model == ""
 
 

@@ -16,7 +16,7 @@
     "openai_compat": "https://api.example.com/v1"
   },
   "shortcut": "Ctrl+Shift+E",
-  "dictation_shortcut": "Ctrl+Shift+S",
+  "dictation_shortcut": "Ctrl+Shift+Q",
   "whisper_model": "",
   "timeout": 30.0,
   "max_tokens": 2048,

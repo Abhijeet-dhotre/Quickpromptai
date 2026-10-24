@@ -9,7 +9,7 @@ from .models import MODEL_STRATEGIES
 
 APP_NAME = "QuickPromptAI"
 DEFAULT_SHORTCUT = "Ctrl+Shift+E"
-DEFAULT_DICTATION_SHORTCUT = "Ctrl+Shift+S"
+DEFAULT_DICTATION_SHORTCUT = "Ctrl+Shift+Q"
 #: Dictation model. Empty string = "auto": use the active provider's default
 #: Whisper model (Groq and OpenAI do not share model IDs — "whisper-1" is an
 #: OpenAI-only ID that 404s on Groq, so hardcoding it breaks dictation there).

@@ -2,7 +2,7 @@
 
 **System-wide AI prompt enhancer and voice dictation for Windows.** Select text
 in *any* application and press **Ctrl+Shift+E** to get a corrected, structured,
-high-quality prompt back. Or press **Ctrl+Shift+S**, speak, and your words are
+high-quality prompt back. Or press **Ctrl+Shift+Q**, speak, and your words are
 typed straight into the caret you left behind.
 
 ```
@@ -10,7 +10,7 @@ Select text anywhere → Ctrl+Shift+E → AI enhances it → popup → Copy / Re
 ```
 
 ```
-Put your caret in any app → Ctrl+Shift+S → speak → press again → text is typed
+Put your caret in any app → Ctrl+Shift+Q → speak → press again → text is typed
 ```
 
 - Works with **OpenAI**, **Anthropic Claude**, **Google Gemini**, **Groq**, and any
@@ -146,7 +146,7 @@ registered; the app tells you and keeps the old shortcut.
 
 ### Dictation (speech-to-text)
 
-Press **Ctrl+Shift+S** anywhere to dictate instead of type:
+Press **Ctrl+Shift+Q** anywhere to dictate instead of type:
 
 1. Put your caret wherever you want the words to land — Notepad, Word, VS Code,
    a browser, anywhere.
@@ -171,7 +171,7 @@ same flow with the mouse.
 
 - **Configurable**: **Shortcut** tab → *Dictation* row → record/enter a new
   combination → **Apply Dictation Shortcut**. It must differ from the enhance
-  shortcut; the default is `Ctrl+Shift+S`.
+  shortcut; the default is `Ctrl+Shift+Q`.
 - **Endpoint & key**: dictation is sent to your **active provider's**
   `/audio/transcriptions` route using that provider's stored API key — there is
   no separate endpoint or credential to configure. Use **OpenAI**, **Groq**, or
