@@ -1,0 +1,7 @@
+# Normalize line endings for all contributors.
+# Text files are stored with LF in the repository; Windows-only scripts
+# keep CRLF so cmd.exe never chokes on them.
+* text=auto
+*.bat text eol=crlf
+*.png binary
+*.ico binary
