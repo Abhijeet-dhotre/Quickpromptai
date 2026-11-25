@@ -443,6 +443,20 @@ class MainWindow(QMainWindow):
         self.strategy_combo.currentIndexChanged.connect(self._update_strategy_hint)
         form.addRow("", self.strategy_hint)
 
+        self.grammar_check = QCheckBox("Correct grammar automatically")
+        self.grammar_check.setChecked(True)
+        self.grammar_check.setToolTip(
+            "On by default: every enhancement (including Ctrl+Shift+E) "
+            "fixes grammar, spelling, punctuation, and capitalization "
+            "before the selected mode is applied."
+        )
+        form.addRow("Grammar correction", self.grammar_check)
+        grammar_hint = QLabel(
+            "Applies to all modes and to the Ctrl+Shift+E shortcut."
+        )
+        grammar_hint.setObjectName("HintLabel")
+        form.addRow("", grammar_hint)
+
         self.max_input_spin = QSpinBox()
         self.max_input_spin.setRange(200, 200_000)
         self.max_input_spin.setSingleStep(2000)
@@ -503,6 +517,9 @@ class MainWindow(QMainWindow):
         si = self.strategy_combo.findData(d.model_strategy)
         self.strategy_combo.setCurrentIndex(max(0, si))
         self.max_input_spin.setValue(d.max_input_chars)
+        self.grammar_check.setChecked(
+            getattr(d, "grammar_correction", True)
+        )
         self.whisper_model_edit.setText(d.whisper_model)
         self._update_key_status()
 
@@ -559,6 +576,7 @@ class MainWindow(QMainWindow):
         d.temperature_enabled = self.temp_check.isChecked()
         d.temperature = float(self.temp_spin.value())
         d.model_strategy = self.strategy_combo.currentData()
+        d.grammar_correction = self.grammar_check.isChecked()
         d.max_input_chars = self.max_input_spin.value()
         # Empty falls back to the default Whisper model in normalize().
         d.whisper_model = self.whisper_model_edit.text().strip()

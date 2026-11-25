@@ -250,6 +250,33 @@ def test_retry_uses_edited_text(controller, qapp, monkeypatch):
     assert "edited original text" in adapter.calls[0][1]
 
 
+def test_popup_flow_grammar_correction_by_default(controller, qapp, monkeypatch):
+    # The Ctrl+Shift+E popup flow must ask the provider to correct grammar.
+    adapter = FakeAdapter()
+    patch_adapter(monkeypatch, adapter)
+    controller.trigger_popup_enhance()
+    pump(qapp, 2.0)
+    assert adapter.calls, "provider was never called"
+    system, user = adapter.calls[0]
+    assert "Automatic grammar correction" in system
+    assert "automatically correct all grammar" in user.lower()
+
+
+def test_popup_flow_grammar_correction_can_be_disabled(controller, qapp, monkeypatch):
+    from core.config import AppSettings
+
+    settings = AppSettings.from_dict(controller.settings.to_dict())
+    settings.grammar_correction = False
+    controller.save_settings(settings)
+    adapter = FakeAdapter()
+    patch_adapter(monkeypatch, adapter)
+    controller.trigger_popup_enhance()
+    pump(qapp, 2.0)
+    system, user = adapter.calls[0]
+    assert "Automatic grammar correction" not in system
+    assert "automatically correct" not in user.lower()
+
+
 def test_history_disabled_records_nothing(controller, qapp, monkeypatch):
     from core.config import AppSettings
 

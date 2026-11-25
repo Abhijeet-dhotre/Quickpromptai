@@ -42,6 +42,31 @@ Non-negotiable rules:
 """
 
 # --------------------------------------------------------------------------
+# Automatic grammar correction (on by default)
+# --------------------------------------------------------------------------
+
+#: Applied on every enhancement when ``grammar_correction`` is enabled
+#: (the default). It runs *before* the mode-specific work, so pressing the
+#: enhance shortcut (Ctrl+Shift+E) always returns grammatically correct
+#: text — even in Prompt Enhance / Advanced Optimize, where the text is
+#: also restructured.
+GRAMMAR_CORRECTION_INSTRUCTION = """\
+Automatic grammar correction (ALWAYS apply this first, before the mode
+instructions below):
+- Correct ALL grammar, spelling, punctuation, and capitalization errors.
+- Fix subject-verb agreement, verb tense consistency, articles (a/an/the),
+  prepositions, pronoun agreement, word order, sentence fragments, and
+  run-on sentences.
+- The correction is mandatory, not optional: never leave a known grammar
+  or spelling error in the output, even when restructuring the text.
+- Preserve the user's meaning, tone, and language exactly — correct the
+  text, do not translate it, summarise it, or change what it asks for.
+- Keep names, numbers, code, commands, file names, and URLs exactly as
+  written, even if they look misspelled.
+- Output only the corrected, enhanced text: do not list, annotate, or
+  explain the corrections you made."""
+
+# --------------------------------------------------------------------------
 # Mode-specific instructions
 # --------------------------------------------------------------------------
 
@@ -118,9 +143,17 @@ Formatting strategy (Gemini-style models):
 STRATEGY_AUTO = "auto"
 
 
-def system_instruction(mode: EnhanceMode, model_strategy: str = "universal") -> str:
-    """Compose the full system instruction for a mode and formatting strategy."""
-    parts = [CORE_INSTRUCTION, MODE_INSTRUCTIONS[mode]]
+def system_instruction(mode: EnhanceMode, model_strategy: str = "universal",
+                       grammar_correction: bool = True) -> str:
+    """Compose the full system instruction for a mode and formatting strategy.
+
+    ``grammar_correction`` is on by default: when enabled, the automatic
+    grammar-correction block is included for every mode.
+    """
+    parts = [CORE_INSTRUCTION]
+    if grammar_correction:
+        parts.append(GRAMMAR_CORRECTION_INSTRUCTION)
+    parts.append(MODE_INSTRUCTIONS[mode])
     if model_strategy == STRATEGY_AUTO:
         # "auto" means universal formatting — never assume a specific vendor.
         model_strategy = "universal"
@@ -131,16 +164,23 @@ def system_instruction(mode: EnhanceMode, model_strategy: str = "universal") -> 
 
 
 def build_messages(text: str, mode: EnhanceMode,
-                   model_strategy: str = "universal") -> tuple[str, str]:
+                   model_strategy: str = "universal",
+                   grammar_correction: bool = True) -> tuple[str, str]:
     """Return ``(system_prompt, user_prompt)`` for a request.
 
     The user message repeats the enhancement directives so the request still
     works with endpoints that ignore or truncate system prompts.
     """
-    system_prompt = system_instruction(mode, model_strategy)
+    system_prompt = system_instruction(mode, model_strategy, grammar_correction)
+    grammar_step = (
+        "First, automatically correct all grammar, spelling, punctuation, "
+        "and capitalization errors in the text, preserving its meaning, "
+        "tone, and language. Then "
+        if grammar_correction else ""
+    )
     user_prompt = (
-        "Enhance the following text according your role and the selected "
-        "mode.\n\n--- BEGIN TEXT ---\n"
+        f"{grammar_step}Enhance the following text according to your role "
+        "and the selected mode.\n\n--- BEGIN TEXT ---\n"
         f"{text}\n"
         "--- END TEXT ---\n\n"
         "Return only the enhanced prompt."

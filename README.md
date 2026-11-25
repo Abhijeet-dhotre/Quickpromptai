@@ -138,6 +138,13 @@ and works even when capture is impossible in the source app.
 ChatGPT / Claude / Gemini, or leaves it universal. This is best-effort
 formatting advice — no provider is guaranteed to benefit.
 
+**Automatic grammar correction is on by default.** Every enhancement —
+including pressing **Ctrl+Shift+E** — first corrects grammar, spelling,
+punctuation, and capitalization (agreement, tense, articles, word order,
+fragments/run-ons) in *all* modes, preserving meaning, tone, and language,
+without listing the corrections. Turn it off in **Provider** tab →
+**Grammar correction** if you ever want the raw enhancement only.
+
 ### Customizing the shortcut
 
 **Shortcut** tab → **Record** → press the new combination → **Apply Shortcut**.

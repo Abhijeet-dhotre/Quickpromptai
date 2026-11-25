@@ -413,7 +413,10 @@ class AppController(QObject):
         api_key = load_secret(self.settings.active_provider)
         adapter = create_adapter_from_settings(self.settings, api_key)
         system_prompt, user_prompt = build_messages(
-            cleaned, mode, self.settings.model_strategy
+            cleaned, mode, self.settings.model_strategy,
+            grammar_correction=getattr(
+                self.settings, "grammar_correction", True
+            ),
         )
         result = adapter.enhance(system_prompt, user_prompt)
         self._record_history(cleaned, mode, result)

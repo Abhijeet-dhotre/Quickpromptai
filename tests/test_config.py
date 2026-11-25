@@ -34,3 +34,11 @@ def test_settings_dict_roundtrip_is_key_stable():
     data = AppSettings().to_dict()
     assert "models" in data and "base_urls" in data and "shortcut" in data
     assert "api_key" not in data
+
+
+def test_grammar_correction_on_by_default():
+    assert AppSettings().grammar_correction is True
+    # Settings files written before the feature existed default to on.
+    assert AppSettings.from_dict({}).grammar_correction is True
+    assert AppSettings.from_dict({"grammar_correction": False}).grammar_correction is False
+    assert AppSettings.from_dict(AppSettings().to_dict()).grammar_correction is True

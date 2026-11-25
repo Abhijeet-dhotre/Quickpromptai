@@ -53,6 +53,11 @@ class AppSettings:
     temperature_enabled: bool = False
     temperature: float = 0.7
     model_strategy: str = "universal"   # universal|chatgpt|claude|gemini
+    # Automatic grammar correction: on by default, so every enhancement
+    # triggered by the shortcut (Ctrl+Shift+E) — and the Enhance buttons —
+    # fixes grammar/spelling/punctuation before/independent of the mode.
+    # Users can turn it off in Settings → Provider.
+    grammar_correction: bool = True
     max_input_chars: int = 24000
     history_enabled: bool = True
     history_max: int = 100
@@ -104,6 +109,8 @@ class AppSettings:
         s.temperature_enabled = _bool("temperature_enabled", s.temperature_enabled)
         s.temperature = _float("temperature", s.temperature)
         s.model_strategy = _str("model_strategy", s.model_strategy)
+        # Missing key (settings written before this feature) -> default True.
+        s.grammar_correction = _bool("grammar_correction", s.grammar_correction)
         s.max_input_chars = _int("max_input_chars", s.max_input_chars)
         s.history_enabled = _bool("history_enabled", s.history_enabled)
         s.history_max = _int("history_max", s.history_max)

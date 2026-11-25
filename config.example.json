@@ -23,6 +23,7 @@
   "temperature_enabled": false,
   "temperature": 0.7,
   "model_strategy": "universal",
+  "grammar_correction": true,
   "max_input_chars": 24000,
   "history_enabled": true,
   "history_max": 100,

@@ -3,6 +3,7 @@ import pytest
 
 from core.enhancement import (
     CORE_INSTRUCTION,
+    GRAMMAR_CORRECTION_INSTRUCTION,
     MODE_INSTRUCTIONS,
     STRATEGY_AUTO,
     build_messages,
@@ -60,6 +61,31 @@ def test_build_messages_contains_original_text():
     assert "write a script to sort files" in user
     assert "BEGIN TEXT" in user and "END TEXT" in user
     assert len(system) > 500
+
+
+def test_grammar_correction_on_by_default_all_modes():
+    # Ctrl+Shift+E (and every Enhance path) must grammar-correct by default,
+    # in every mode — not only in Quick Fix.
+    for mode in EnhanceMode:
+        instr = system_instruction(mode)
+        assert GRAMMAR_CORRECTION_INSTRUCTION in instr
+        assert "subject-verb agreement" in instr.lower()
+
+
+def test_grammar_correction_can_be_turned_off():
+    instr = system_instruction(EnhanceMode.PROMPT_ENHANCE, grammar_correction=False)
+    assert GRAMMAR_CORRECTION_INSTRUCTION not in instr
+    _, user = build_messages("he go to school", EnhanceMode.PROMPT_ENHANCE,
+                             grammar_correction=False)
+    assert "automatically correct" not in user.lower()
+
+
+def test_build_messages_grammar_correction_by_default():
+    system, user = build_messages("he go to school", EnhanceMode.PROMPT_ENHANCE)
+    assert GRAMMAR_CORRECTION_INSTRUCTION in system
+    assert "automatically correct all grammar" in user.lower()
+    # The grammar step comes before the enhancement step in the user prompt.
+    assert user.lower().index("automatically correct") < user.lower().index("enhance the following")
 
 
 def test_validate_input_ok():
